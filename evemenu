@@ -1,0 +1,256 @@
+#!/bin/env bash
+
+# File:   evemenu
+# Author: Marco Plaitano  https://github.com/marcoplaitano
+# Date:   01 Aug 2022
+# Brief:  Let the user launch anything via dmenu.
+#
+# Copyright (c) 2022 Marco Plaitano
+
+
+##################################################
+#                 SCRIPT FUNCTIONS               #
+##################################################
+
+# Show error message and stop the execution of the script.
+function raise_error {
+    [[ -n $1 ]] && error_msg="$1" || error_msg="Error in 'evemenu'."
+
+    # Either echo the message if running the program in a terminal or display it
+    # as a notification.
+    if [[ -t 1 ]]; then
+        echo "$error_msg"
+    else
+        notify-send "evemenu" "$error_msg"
+    fi
+
+    # Stop the execution of the program.
+    exit 1
+}
+
+
+# Run dmenu with the given options and list of choices.
+function ask_dmenu {
+    # Parse function's arguments.
+    while [[ -n $1 ]]; do
+        case "$1" in
+            # Prompt to display.
+            -p | --prompt)
+                local prompt="$2" ; shift ; shift ;;
+            # List of choices.
+            -l | --list)
+                local list="$2" ; shift ; shift ;;
+            # Display each choice on a new line.
+            --multiple-lines)
+                local multiple_lines=true ; shift ;;
+            # Accept any user input, without presenting a list of choices.
+            --accept-all)
+                local accept_all=true ; shift ;;
+            # Discard any other argument.
+            *)
+                shift ;;
+        esac
+    done
+
+    local lines=0
+    # If requested, calculate the number of lines in the list string.
+    if [[ $multiple_lines == true ]]; then
+        lines=$(echo -e "$list" | wc -l)
+    fi
+
+    # Ask for any input.
+    if [[ $accept_all == true ]]; then
+        echo $(dmenu -p "$prompt" -i -fn $font -nb $nb -nf $nf -sb $sb -sf $sf)
+    # Launch regular dmenu (with a list of all system applications).
+    elif [[ -z $list ]]; then
+        echo $(dmenu_run -p "$prompt" -i -fn $font -nb $nb -nf $nf -sb $sb -sf $sf)
+    # Ask for a choice from the list.
+    else
+        echo $(echo -e "$list" | dmenu -p "$prompt" -l $lines -i -fn $font -nb $nb -nf $nf -sb $sb -sf $sf)
+    fi
+}
+
+
+
+##################################################
+#                 ACTION FUNCTIONS               #
+##################################################
+
+### CALLED BY ACTION "code"
+# Choose a directory to open in a new VS Code window.
+function choose_editor_directory {
+    local dirs_string="default\nempty"
+
+    # Append all possible directories to one string.
+    # See below for declaration of CODE_DIR.
+    for dir in $(find "$CODE_DIR" -maxdepth 1 -type d); do
+        [[ "$dir" == "$CODE_DIR" ]] && continue
+        dirs_string+="\n"$(basename "$dir")
+    done
+
+    # Ask which directory to open.
+    local dir=$(ask_dmenu -p "directory:" -l "$dirs_string" --multiple-lines)
+    [[ -z $dir ]] && exit
+
+    # Open an empty window.
+    if [[ "$dir" == "empty" ]]; then
+        code -n
+    # "default" will open a window with last active workspace.
+    elif [[ "$dir" == "default" ]]; then
+        code
+    elif [[ -d "$CODE_DIR"/"$dir" ]]; then
+        code "$CODE_DIR"/"$dir"
+    fi
+}
+
+
+### CALLED BY ACTION "kill"
+# Choose a process to kill.
+function choose_kill_process {
+    local processes="firefox\nplank\nredshift"
+    # Ask for a process to kill. It can be any value, even one not listed in
+    # the 'processes' list above.
+    local process=$(ask_dmenu -p "which process?" -l $processes)
+    killall "$process"
+}
+
+
+### CALLED BY ACTIONS "drive", "mail"
+# Choose which account to open the given Google's site with.
+# When multiple accounts are active in the same browser, google will assign
+# a number to each one, going from 0 to ...
+# The first account the user uses to sign in is account n. 0, the second is
+# account n. 1 and so on.
+function choose_google_account {
+    local accounts="personal\nwork"
+    local account=$(ask_dmenu -p "which account?" -l $accounts)
+    # Argument $1 is the site to open (either gmail, Drive, Photos, ...) and,
+    # eventually, $2 is the specific page view in the site.
+    case $account in
+        personal) $WEBBROWSER https://"$1"/u/0/"$2" ;;
+        work)     $WEBBROWSER https://"$1"/u/1/"$2" ;;
+    esac
+}
+
+
+### CALLED BY ACTION "search"
+# Ask what to search for online.
+function search_online {
+    local query=$(ask_dmenu -p "search for?" --accept-all)
+    [[ -z $query ]] && exit
+    url="https://www.google.com/search?q=${query// /+}"
+    local domains=("com" "it" "gov" "en" "org")
+    for domain in "${domains[@]}"; do
+        if [[ $query == *.$domain ]]; then
+            url="https://$query"
+            break
+        fi
+    done
+    $WEBBROWSER "$url"
+}
+
+
+### CALLED BY ACTIONS "poweroff", "reboot"
+# Execute a series of commands before shutting down the machine.
+function shutdown_routine {
+    # ADD YOUR COMMANDS HERE. (e.g. killall firefox)
+    # . . .
+    # argument $1 is the command to execute, either 'poweroff' or 'restart'.
+    "$1"
+}
+
+
+
+##################################################
+#                DMENU APPEARANCE                #
+##################################################
+
+font="UbuntMono-12"
+
+# Background color.
+nb="#262626"
+# Foreground color.
+nf="#aaaaaa"
+# Selected item's background color.
+sb="#447375"
+# Selected item's foreground color.
+sf="#ffffff"
+
+
+
+##################################################
+#                    VARIABLES                   #
+##################################################
+
+# Root directory in which to look for directories containing coding projects.
+CODE_DIR=${CODE_DIR:=$HOME/Desktop}
+
+WEBBROWSER=${WEBBROWSER:=firefox}
+
+CALCULATOR=${CALCULATOR:=mate-calc}
+
+
+# Key-Value pairs in which:
+# Key   = name of the action.
+# Value = command to perform.
+declare -A actions=(
+    [all]="ask_dmenu -p run:" # Launch regular instance of dmenu.
+    [amazon]="$WEBBROWSER amazon.com"
+    [appearance]="xfce4-appearance-settings"
+    [calculator]="$CALCULATOR"
+    [code]="choose_editor_directory"
+    [discord]="discord"
+    [drive]="choose_google_account drive.google.com/drive my-drive"
+    [firefox]="firefox"
+    [github]="$WEBBROWSER github.com"
+    [instagram]="$WEBBROWSER instagram.com"
+    [kill]="choose_kill_process"
+    [lofi]="$WEBBROWSER https://www.youtube.com/watch?v=jfKfPfyJRdk"
+    [logout]="xfce4-session-logout"
+    [mail]="choose_google_account mail.google.com/mail \#inbox"
+    [mousepad]="mousepad"
+    [netflix]="$WEBBROWSER netflix.com/browse"
+    [nightmode]="night_mode.sh --now"
+    [notion]="$WEBBROWSER notion.so"
+    [poweroff]="shutdown_routine poweroff"
+    [reboot]="shutdown_routine reboot"
+    [redshift]="redshift -x && redshift"
+    [screenshot]="xfce4-screenshooter"
+    [search]="search_online"
+    [session]="xfce4-session-settings"
+    [settings]="xfce4-settings-manager"
+    [screenrecorder]="simplescreenrecorder"
+    [speedtest]="$WEBBROWSER speedtest.net/run"
+    [spotify]="spotify"
+    [telegram]="Telegram"
+    [youtube]="$WEBBROWSER youtube.com"
+    [whatsapp]="$WEBBROWSER https://web.whatsapp.com"
+)
+
+
+
+##################################################
+#                  MAIN SECTION                  #
+##################################################
+
+# Sort the keys in alphabetical order and create one long string, separating
+# them with a '\n'.
+keys=( $( echo ${!actions[@]} | tr ' ' $'\n' | sort ) )
+for k in "${keys[@]}"; do
+    choices+="$k\n"
+done
+# Remove last 2 characters (an exceeding \n).
+choices=${choices::-2}
+
+
+# The user chooses the action to perform via dmenu.
+selected=$(ask_dmenu -p "run:" -l "$choices")
+[[ -z $selected ]] && exit
+
+
+# Execute the chosen action.
+if [[ -v actions[$selected] ]]; then
+    ${actions[$selected]} & exit
+else
+    raise_error "Action '$selected' not found."
+fi
