@@ -92,8 +92,8 @@ Distributed under the [MIT] license.
 <!-- LINKS -->
 
 [dmenu]:
-https://tools.suckless.org/dmenu/
-"Official website"
+https://github.com/marcoplaitano/dmenu
+"My fork of dmenu"
 
 [configurable]:
 #actions
