@@ -82,6 +82,14 @@ The only dependency is dmenu. It is installed via this [script].
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+## Contributing
+
+You can contribute by:
++ proposing a better name than **evemenu**
++ making [this] installation process available for other platforms too.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 ## Author
 
 Marco Plaitano
@@ -115,6 +123,10 @@ https://github.com/marcoplaitano/dmenu
 "My fork of dmenu"
 
 [script]:
+https://github.com/marcoplaitano/dmenu/tree/main/install.sh
+"dmenu installation script"
+
+[this]:
 https://github.com/marcoplaitano/dmenu/tree/main/install.sh
 "dmenu installation script"
 
