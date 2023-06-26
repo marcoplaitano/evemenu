@@ -1,10 +1,9 @@
-# Eve Menu
+# evemenu
 
 This script lets the user interact with a non-intrusive menu based on [dmenu].
 
-With this menu it is possible to launch specific applications or execute
-commands/routines just by typing out the command's name.  
-(The association **name -> command** is [configurable] in the script).
+The idea is to expand on the basic functionality of **dmenu** by defining
+personal commands, applications, routines and other scripts to run with it.
 
 ![demo gif]
 
@@ -12,18 +11,18 @@ commands/routines just by typing out the command's name.
 
 ## Installation
 
-**Note:** It only works on <u>Ubuntu</u> or <u>Arch</u> based distributions, since it uses either `apt` or `pacman` to install.
+**Note:** It only works on <u>Ubuntu</u> or <u>Arch</u> based distributions,
+since it uses either `apt` or `pacman` to install.
 
 ```shell
 git clone https://github.com/marcoplaitano/evemenu
 cd evemenu && ./install.sh
 ```
 
-What the `install.sh` script does is installing [my own patched version] of
-dmenu with all its dependencies.
+The `install.sh` script clones and installs [my own patched version] of
+**dmenu** with all its dependencies.
 
-**Note:** `evemenu` will be in `$HOME/.local/bin`; make sure this is in
-`$PATH`.
+**Note:** `evemenu` will be in `$HOME/.local/bin`; make sure this is in `$PATH`.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,13 +42,13 @@ evemenu
 ## Configuration
 
 The script takes no command line arguments; all the options have to be manually
-edited in the [file itself].
+edited in the file itself.
 
 ### Appearance
 
 You can customize the appearance of dmenu.  
-The program accepts custom values for the font and the colors of (selected)
-background and foreground.
+The program accepts custom values for the font and the colors of normal/selected
+items.
 
 ### Actions
 
@@ -58,14 +57,22 @@ actions that can be executed.
 The values are the routines to run and the keys are the names the user has to
 type to execute the commands.
 
-Example:
-
 ```sh
-[github]="firefox https://www.github.com"
+declare -A actions=(
+    [github]="firefox --new-instance https://www.github.com"
+    [nightmode]="night_mode.sh --now"
+    [spotify]="spotify"
+)
 ```
 
-With this example the user only has to launch the script and type out `github`
-to open a new window/tab of firefox and load the Github website. 
+With this example the user only has to launch the script and type out either
+`github`, `nightmode` or `spotify` and the correspondent action will be
+performed.
+
+The advantage of a script like this, compared to **rofi** or **dmenu** itself
+is the idea of having custom actions which can both be applications (like
+`spotify`) or more complex commands with arguments and options (`github`), or
+even other scripts (`nightmode`).
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -88,8 +95,8 @@ Distributed under the [MIT] license.
 <!-- LINKS -->
 
 [dmenu]:
-https://github.com/marcoplaitano/dmenu
-"My fork of dmenu"
+https://tools.suckless.org/dmenu/
+"dmenu website"
 
 [configurable]:
 #actions
@@ -105,11 +112,7 @@ https://github.com/marcoplaitano/evemenu/archive/refs/heads/master.zip
 
 [my own patched version]:
 https://github.com/marcoplaitano/dmenu
-"My dmenu repository"
-
-[file itself]:
-evemenu
-"Repository file"
+"My fork of dmenu"
 
 [script]:
 https://github.com/marcoplaitano/dmenu/tree/main/install.sh
