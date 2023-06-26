@@ -12,12 +12,18 @@ commands/routines just by typing out the command's name.
 
 ## Installation
 
-+ Clone or [download] this repository.
-+ `cd` into its directory.
-+ Launch the `install.sh` script like so:
-    ```shell
-    ./install.sh
-    ```
+**Note:** It only works on <u>Ubuntu</u> or <u>Arch</u> based distributions, since it uses either `apt` or `pacman` to install.
+
+```shell
+git clone https://github.com/marcoplaitano/evemenu
+cd evemenu && ./install.sh
+```
+
+What the `install.sh` script does is installing [my own patched version] of
+dmenu with all its dependencies.
+
+**Note:** `evemenu` will be in `$HOME/.local/bin`; make sure this is in
+`$PATH`.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -65,17 +71,7 @@ to open a new window/tab of firefox and load the Github website.
 
 ## Dependencies
 
-Listed below are all the tools and libs used to download and install **dmenu**.
-They are all automatically installed and properly used in the [installation
-script].
-
-+ wget
-+ tar
-+ gcc
-+ make
-+ libx11-dev
-+ libxinerama-dev
-+ libxft-dev
+The only dependency is dmenu. It is installed via this [script].
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -107,13 +103,17 @@ https://github.com/marcoplaitano/images/blob/main/evemenu_demo.gif
 https://github.com/marcoplaitano/evemenu/archive/refs/heads/master.zip
 "Zip download"
 
+[my own patched version]:
+https://github.com/marcoplaitano/dmenu
+"My dmenu repository"
+
 [file itself]:
 evemenu
 "Repository file"
 
-[installation script]:
-install.sh
-"Repository file"
+[script]:
+https://github.com/marcoplaitano/dmenu/tree/main/install.sh
+"dmenu installation script"
 
 [MIT]:
 LICENSE
